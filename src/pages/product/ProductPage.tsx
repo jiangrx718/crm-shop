@@ -19,6 +19,7 @@ import {
   FilterOutlined, 
   SortAscendingOutlined 
 } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import { mockProducts } from '../../services/mockData';
 
 const { TabPane } = Tabs;
@@ -27,6 +28,7 @@ const { Option } = Select;
 
 const ProductPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('1');
+  const navigate = useNavigate();
 
   // 表格列定义
   const columns = [
@@ -177,7 +179,7 @@ const ProductPage: React.FC = () => {
             </Col>
             <Col span={8} style={{ textAlign: 'right' }}>
               <Space>
-                <Button icon={<PlusOutlined />}>添加商品</Button>
+                <Button icon={<PlusOutlined />} onClick={() => navigate('/product/add')}>添加商品</Button>
                 <Button icon={<ExportOutlined />}>导出</Button>
                 <Button icon={<FilterOutlined />}>筛选</Button>
                 <Button icon={<SortAscendingOutlined />}>排序</Button>
