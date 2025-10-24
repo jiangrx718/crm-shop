@@ -25,25 +25,25 @@ import { useNavigate } from 'react-router-dom';
 const { TabPane } = Tabs;
 
 const AddProductPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('1');
+  const [activeKey, setActiveKey] = useState('1');
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
   const handleTabChange = (key: string) => {
-    setActiveTab(key);
+    setActiveKey(key);
   };
 
   const handlePrevious = () => {
-    const currentKey = parseInt(activeTab);
+    const currentKey = parseInt(activeKey);
     if (currentKey > 1) {
-      setActiveTab((currentKey - 1).toString());
+      setActiveKey((currentKey - 1).toString());
     }
   };
 
   const handleNext = () => {
-    const currentKey = parseInt(activeTab);
+    const currentKey = parseInt(activeKey);
     if (currentKey < 6) {
-      setActiveTab((currentKey + 1).toString());
+      setActiveKey((currentKey + 1).toString());
     }
   };
 
@@ -83,7 +83,7 @@ const AddProductPage: React.FC = () => {
             memberPriceEnabled: false
           }}
         >
-          <Tabs activeKey={activeTab} onChange={handleTabChange}>
+          <Tabs activeKey={activeKey} onChange={handleTabChange}>
             <TabPane tab="基础信息" key="1">
               <div style={{ padding: '20px 0' }}>
                 <Form.Item label="商品类型" name="productType">
@@ -237,10 +237,10 @@ const AddProductPage: React.FC = () => {
 
           <div style={{ marginTop: '20px', textAlign: 'center' }}>
             <Space size="large">
-              {activeTab !== '1' && (
+              {activeKey !== '1' && (
                 <Button onClick={handlePrevious}>上一步</Button>
               )}
-              {activeTab !== '6' ? (
+              {activeKey !== '6' ? (
                 <Button onClick={handleNext}>下一步</Button>
               ) : null}
               <Button type="primary" onClick={handleSave}>保存</Button>
