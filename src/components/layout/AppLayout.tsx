@@ -1,7 +1,7 @@
 import React from 'react';
 import { Layout } from 'antd';
-import Sidebar from './Sidebar.tsx';
-import AppHeader from './AppHeader.tsx';
+import Sidebar from './Sidebar';
+import AppHeader from './AppHeader';
 
 const { Content } = Layout;
 
