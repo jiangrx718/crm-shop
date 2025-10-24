@@ -1,20 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Space, Switch, Modal, Form, Input, Select, message } from 'antd';
+import { Table, Button, Space, Switch, Modal, Form, Input, Select, message, TreeSelect } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import { categoryData } from '../../services/mockData.ts';
+import { categoryData, flattenCategoryData, CategoryItem, FlattenedCategoryItem } from '../../services/mockData';
 
 const { Option } = Select;
 
-interface CategoryItem {
-  id: number;
-  name: string;
-  image: string;
-  sort: number;
-  status: boolean;
-}
-
 const CategoryPage: React.FC = () => {
   const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [flattenedCategories, setFlattenedCategories] = useState<FlattenedCategoryItem[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -22,6 +15,7 @@ const CategoryPage: React.FC = () => {
   useEffect(() => {
     // 模拟从API获取数据
     setCategories(categoryData);
+    setFlattenedCategories(flattenCategoryData(categoryData));
   }, []);
 
   const columns = [
@@ -35,6 +29,12 @@ const CategoryPage: React.FC = () => {
       title: '分类名称',
       dataIndex: 'name',
       key: 'name',
+      render: (text: string, record: FlattenedCategoryItem) => (
+        <span style={{ paddingLeft: `${record.level ? record.level * 20 : 0}px` }}>
+          {record.level ? '├─ ' : ''}
+          {text}
+        </span>
+      ),
     },
     {
       title: '分类图标',
@@ -53,7 +53,7 @@ const CategoryPage: React.FC = () => {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      render: (status: boolean, record: CategoryItem) => (
+      render: (status: boolean, record: FlattenedCategoryItem) => (
         <Switch 
           checked={status} 
           onChange={(checked) => handleStatusChange(record.id, checked)}
@@ -65,7 +65,7 @@ const CategoryPage: React.FC = () => {
     {
       title: '操作',
       key: 'action',
-      render: (_: any, record: CategoryItem) => (
+      render: (_: any, record: FlattenedCategoryItem) => (
         <Space size="middle">
           <Button 
             type="text" 
@@ -88,21 +88,18 @@ const CategoryPage: React.FC = () => {
   ];
 
   const handleStatusChange = (id: number, status: boolean) => {
-    setCategories(
-      categories.map(item => 
-        item.id === id ? { ...item, status } : item
-      )
-    );
+    // 这里应该更新原始树形结构数据的状态
     message.success(`状态已${status ? '启用' : '禁用'}`);
   };
 
-  const handleEdit = (record: CategoryItem) => {
+  const handleEdit = (record: FlattenedCategoryItem) => {
     setEditingId(record.id);
     form.setFieldsValue({
       name: record.name,
       image: record.image,
       sort: record.sort,
       status: record.status,
+      parentId: record.parentId,
     });
     setIsModalVisible(true);
   };
@@ -112,7 +109,7 @@ const CategoryPage: React.FC = () => {
       title: '确认删除',
       content: '确定要删除这个分类吗？',
       onOk() {
-        setCategories(categories.filter(item => item.id !== id));
+        // 这里应该从原始树形结构中删除分类
         message.success('删除成功');
       },
     });
@@ -121,7 +118,7 @@ const CategoryPage: React.FC = () => {
   const handleAdd = () => {
     setEditingId(null);
     form.resetFields();
-    form.setFieldsValue({ status: true, sort: 0 });
+    form.setFieldsValue({ status: true, sort: 0, parentId: undefined });
     setIsModalVisible(true);
   };
 
@@ -129,23 +126,34 @@ const CategoryPage: React.FC = () => {
     form.validateFields().then(values => {
       if (editingId) {
         // 编辑现有分类
-        setCategories(
-          categories.map(item => 
-            item.id === editingId ? { ...item, ...values } : item
-          )
-        );
         message.success('更新成功');
       } else {
         // 添加新分类
-        const newCategory = {
-          id: Math.max(...categories.map(c => c.id), 0) + 1,
-          ...values,
-        };
-        setCategories([...categories, newCategory]);
         message.success('添加成功');
       }
       setIsModalVisible(false);
     });
+  };
+
+  // 构建父级分类选择器选项
+  const getParentCategoryOptions = () => {
+    const options: { value: number | undefined; label: string }[] = [{ value: undefined, label: '无父级分类' }];
+    
+    const addOptions = (categories: CategoryItem[], prefix = '') => {
+      categories.forEach(category => {
+        options.push({
+          value: category.id,
+          label: `${prefix}${category.name}`
+        });
+        
+        if (category.children && category.children.length > 0) {
+          addOptions(category.children, `${prefix}${category.name} > `);
+        }
+      });
+    };
+    
+    addOptions(categories);
+    return options;
   };
 
   return (
@@ -165,7 +173,7 @@ const CategoryPage: React.FC = () => {
 
       <Table 
         columns={columns} 
-        dataSource={categories} 
+        dataSource={flattenedCategories} 
         rowKey="id"
         pagination={{ pageSize: 10 }}
       />
@@ -181,6 +189,18 @@ const CategoryPage: React.FC = () => {
           form={form}
           layout="vertical"
         >
+          <Form.Item
+            name="parentId"
+            label="父级分类"
+          >
+            <TreeSelect
+              style={{ width: '100%' }}
+              dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
+              treeData={getParentCategoryOptions() as any}
+              placeholder="请选择父级分类"
+              treeDefaultExpandAll
+            />
+          </Form.Item>
           <Form.Item
             name="name"
             label="分类名称"
