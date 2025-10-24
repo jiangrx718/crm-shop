@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import AppLayout from './components/layout/AppLayout';
 import CategoryPage from './pages/category/CategoryPage';
+import ProductPage from './pages/product/ProductPage';
 import './App.css';
 
 function App() {
@@ -10,7 +11,8 @@ function App() {
       <AppLayout>
         <Routes>
           <Route path="/category" element={<CategoryPage />} />
-          <Route path="*" element={<Navigate to="/category" replace />} />
+          <Route path="/product" element={<ProductPage />} />
+          <Route path="*" element={<Navigate to="/product" replace />} />
         </Routes>
       </AppLayout>
     </Router>

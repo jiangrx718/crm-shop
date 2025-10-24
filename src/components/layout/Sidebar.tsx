@@ -31,12 +31,14 @@ const Sidebar: React.FC = () => {
       label: '商品管理',
       children: [
         {
-          key: 'product-list',
+          key: 'product',
           label: '商品列表',
+          onClick: () => navigate('/product'),
         },
         {
           key: 'category',
           label: '商品分类',
+          onClick: () => navigate('/category'),
         },
         {
           key: 'product-tag',
